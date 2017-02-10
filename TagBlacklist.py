@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-version = 1  # increase with each push/edit
-
 # special thanks to da3dsoul
+
+version = 1  # increase with each push/edit
 
 tagBlacklistAniDBHelpers = [  # AniDB tags that don't help with anything
     "body and host",
