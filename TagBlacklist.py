@@ -5,7 +5,7 @@
 
 version = 1  # increase with each push/edit
 
-tagBlacklistAniDBHelpers = [  # AniDB tags that don't help with anything
+tagBlacklistAniDBHelpers = set([  # AniDB tags that don't help with anything
     "body and host",
     "breasts",
     "broadcast cropped to 4-3",
@@ -49,9 +49,9 @@ tagBlacklistAniDBHelpers = [  # AniDB tags that don't help with anything
     "tropes",
     "ungrouped",
     "unsorted"
-]
+])
 
-tagBlackListSource = [  # tags containing source of serie
+tagBlackListSource = set([  # tags containing source of serie
     "4-koma",
     "action game",
     "erotic game",
@@ -70,9 +70,9 @@ tagBlackListSource = [  # tags containing source of serie
     "television programme",
     "ultra jump",
     "visual novel"
-]
+])
 
-tagBlackListArtStyle = [  # tags that focus on art style
+tagBlackListArtStyle = set([  # tags that focus on art style
     "3d cg animation",
     "3d cg closing",
     "cel-shaded animation",
@@ -91,9 +91,9 @@ tagBlackListArtStyle = [  # tags that focus on art style
     "vignette scenes",
     "watercolour style",
     "widescreen transition"
-]
+])
 
-tagBlackListUsefulHelpers = [  # tags that focus on episode attributes
+tagBlackListUsefulHelpers = set([  # tags that focus on episode attributes
     "ed variety",
     "half-length episodes",
     "long episodes",
@@ -106,9 +106,9 @@ tagBlackListUsefulHelpers = [  # tags that focus on episode attributes
     "short movie",
     "stand-alone movie",
     "subtle op ed sequence change"
-]
+])
 
-tagBlackListPlotSpoilers = [  # tags that could contain story-line spoilers
+tagBlackListPlotSpoilers = set([  # tags that could contain story-line spoilers
     "branching story",
     "cliffhangers",
     "colour coded",
@@ -126,4 +126,99 @@ tagBlackListPlotSpoilers = [  # tags that could contain story-line spoilers
     "tone changes",
     "unresolved",
     "unresolved romance"
-]
+])
+
+# Feed this a list of str types
+def processTags(addon, string):
+
+    toRemove=set()
+    removeOriginal=False
+
+    for a in string:
+        tag = str(a).lower().strip()
+        if addon.getSetting("hideArtTags") == "true":
+            if tag in tagBlackListArtStyle:
+                toRemove.add(a)
+            if "censor" in tag:
+                toRemove.add(a)
+        if addon.getSetting("hideSourceTags") == "true":
+            if tag in tagBlackListSource:
+                toRemove.add(a)
+            if "original work" == tag:
+                toRemove.add(a)
+        else:
+            if tag in tagBlackListSource:
+                removeOriginal=True
+
+        if addon.getSetting("hideUsefulMiscTags") == "true":
+            if tag in tagBlackListUsefulHelpers:
+                toRemove.add(a)
+            if tag.startswith("preview"):
+                toRemove.add(a)
+
+        if addon.getSetting("hideSpoilerTags") == "true":
+            if tag in tagBlackListPlotSpoilers:
+                toRemove.add(a)
+            if tag.startswith("plot"):
+                toRemove.add(a)
+            if tag.endswith(" dies"):
+                toRemove.add(a)
+            if tag.endswith(" end"):
+                toRemove.add(a)
+            if tag.endswith(" ending"):
+                toRemove.add(a)
+
+        if addon.getSetting("hideMiscTags") == "true":
+            if tag in tagBlacklistAniDBHelpers:
+                toRemove.add(a)
+            if "to be" in tag:
+                if "merged" in tag:
+                    toRemove.add(a)
+                elif "deleted" in tag:
+                    toRemove.add(a)
+                elif "split" in tag:
+                    toRemove.add(a)
+                elif "moved" in tag:
+                    toRemove.add(a)
+                elif "improved" in tag or "improving" in tag or "improvement" in tag:
+                    toRemove.add(a)
+            elif "need" in tag or "needs" in tag:
+                if "merging" in tag or "merged" in tag:
+                    toRemove.add(a)
+                elif "deleting" in tag or "deleted" in tag:
+                    toRemove.add(a)
+                elif "moving" in tag or "moved" in tag:
+                    toRemove.add(a)
+                elif "improved" in tag or "improving" in tag or "improvement" in tag:
+                    toRemove.add(a)
+            elif "old animetags" in tag:
+                toRemove.add(a)
+            elif "missing" in tag:
+                toRemove.add(a)
+            elif tag.startswith("predominantly"):
+                toRemove.add(a)
+            elif tag.startswith("weekly"):
+                toRemove.add(a)
+
+    toAdd = []
+    # on a separate loop in case 'original work' came before the source
+    if removeOriginal:
+        for a in string:
+            tag = str(a).lower().strip()
+            if tag == "new":
+                toAdd.append('Original Work')
+            elif tag == "original work":
+                toRemove.add("original work")
+                # both just in case
+                toRemove.add("Original Work")
+                break
+
+    for a in toRemove:
+        if a in string:
+            string.remove(a)
+
+    for a in toAdd:
+        if a not in string:
+            string.append(a)
+
+    return string
