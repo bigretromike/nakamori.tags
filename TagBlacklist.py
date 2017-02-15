@@ -128,20 +128,31 @@ tagBlackListPlotSpoilers = set([  # tags that could contain story-line spoilers
     "unresolved romance"
 ])
 
-# Feed this a list of str types
-def processTags(addon, string):
 
+def processTags(flags, string):
+
+    """
+        Filters tags based on settings specified in flags
+    :param flags:
+            0b00001 : Hide AniDB Internal Tags
+            0b00010 : Hide Art Style Tags
+            0b00100 : Hide Source Work Tags
+            0b01000 : Hide Useful Miscellaneous Tags
+            0b10000 : Hide Plot Spoiler Tags
+    :param string: A list of strings [ 'meta tags', 'elements', 'comedy' ]
+    :return: The list of strings after filtering
+    """
     toRemove=set()
     removeOriginal=False
 
     for a in string:
         tag = str(a).lower().strip()
-        if addon.getSetting("hideArtTags") == "true":
+        if flags & 0b00010 == 0b00010:
             if tag in tagBlackListArtStyle:
                 toRemove.add(a)
             if "censor" in tag:
                 toRemove.add(a)
-        if addon.getSetting("hideSourceTags") == "true":
+        if flags & 0b00100 == 0b00100:
             if tag in tagBlackListSource:
                 toRemove.add(a)
             if "original work" == tag:
@@ -150,13 +161,13 @@ def processTags(addon, string):
             if tag in tagBlackListSource:
                 removeOriginal=True
 
-        if addon.getSetting("hideUsefulMiscTags") == "true":
+        if flags & 0b01000 == 0b01000:
             if tag in tagBlackListUsefulHelpers:
                 toRemove.add(a)
             if tag.startswith("preview"):
                 toRemove.add(a)
 
-        if addon.getSetting("hideSpoilerTags") == "true":
+        if flags & 0b10000 == 0b10000:
             if tag in tagBlackListPlotSpoilers:
                 toRemove.add(a)
             if tag.startswith("plot"):
@@ -168,7 +179,7 @@ def processTags(addon, string):
             if tag.endswith(" ending"):
                 toRemove.add(a)
 
-        if addon.getSetting("hideMiscTags") == "true":
+        if flags & 0b00001 == 0b00001:
             if tag in tagBlacklistAniDBHelpers:
                 toRemove.add(a)
             if "to be" in tag:
