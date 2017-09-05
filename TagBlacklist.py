@@ -3,7 +3,7 @@
 
 # special thanks to da3dsoul
 
-version = 1  # increase with each push/edit
+version = 2  # increase with each push/edit
 
 tagBlacklistAniDBHelpers = set([  # AniDB tags that don't help with anything
     "body and host",
@@ -143,93 +143,113 @@ def processTags(flags, string):
     :return: The list of strings after filtering
     """
     toRemove=set()
-    removeOriginal=False
+    readdOriginal=True
 
-    for a in string:
-        tag = str(a).lower().strip()
+    string_set = set(string)
+    for a in string_set:
+        tag = a.strip().lower()
         if flags & 0b00010 == 0b00010:
             if tag in tagBlackListArtStyle:
                 toRemove.add(a)
+                continue
             if "censor" in tag:
                 toRemove.add(a)
+                continue
         if flags & 0b00100 == 0b00100:
+            readdOriginal = False
             if tag in tagBlackListSource:
                 toRemove.add(a)
+                continue
             if "original work" == tag:
                 toRemove.add(a)
+                continue
         else:
             if tag in tagBlackListSource:
-                removeOriginal=True
+                readdOriginal=False
+                continue
+            if tag == "original work":
+                toRemove.add(a)
+                continue
 
         if flags & 0b01000 == 0b01000:
             if tag in tagBlackListUsefulHelpers:
                 toRemove.add(a)
+                continue
             if tag.startswith("preview"):
                 toRemove.add(a)
+                continue
 
         if flags & 0b10000 == 0b10000:
             if tag in tagBlackListPlotSpoilers:
                 toRemove.add(a)
+                continue
             if tag.startswith("plot"):
                 toRemove.add(a)
+                continue
             if tag.endswith(" dies"):
                 toRemove.add(a)
+                continue
             if tag.endswith(" end"):
                 toRemove.add(a)
+                continue
             if tag.endswith(" ending"):
                 toRemove.add(a)
+                continue
 
         if flags & 0b00001 == 0b00001:
             if tag in tagBlacklistAniDBHelpers:
                 toRemove.add(a)
+                continue
             if "to be" in tag:
                 if "merged" in tag:
                     toRemove.add(a)
-                elif "deleted" in tag:
+                    continue
+                if "deleted" in tag:
                     toRemove.add(a)
-                elif "split" in tag:
+                    continue
+                if "split" in tag:
                     toRemove.add(a)
-                elif "moved" in tag:
+                    continue
+                if "moved" in tag:
                     toRemove.add(a)
-                elif "improved" in tag or "improving" in tag or "improvement" in tag:
+                    continue
+                if "improved" in tag or "improving" in tag or "improvement" in tag:
                     toRemove.add(a)
-            elif "need" in tag or "needs" in tag:
+                    continue
+            if "need" in tag or "needs" in tag:
                 if "merging" in tag or "merged" in tag:
                     toRemove.add(a)
-                elif "deleting" in tag or "deleted" in tag:
+                    continue
+                if "deleting" in tag or "deleted" in tag:
                     toRemove.add(a)
-                elif "moving" in tag or "moved" in tag:
+                    continue
+                if "moving" in tag or "moved" in tag:
                     toRemove.add(a)
-                elif "improved" in tag or "improving" in tag or "improvement" in tag:
+                    continue
+                if "improved" in tag or "improving" in tag or "improvement" in tag:
                     toRemove.add(a)
-            elif "old animetags" in tag:
+                    continue
+            if "old animetags" in tag:
                 toRemove.add(a)
-            elif "missing" in tag:
+                continue
+            if "missing" in tag:
                 toRemove.add(a)
-            elif tag.startswith("predominantly"):
+                continue
+            if tag.startswith("predominantly"):
                 toRemove.add(a)
-            elif tag.startswith("weekly"):
+                continue
+            if tag.startswith("weekly"):
                 toRemove.add(a)
-
-    toAdd = []
-    # on a separate loop in case 'original work' came before the source
-    if removeOriginal:
-        for a in string:
-            tag = str(a).lower().strip()
-            if tag == "new":
-                toAdd.append('Original Work')
-            elif tag == "original work":
-                toRemove.add("original work")
-                # both just in case
-                toRemove.add("Original Work")
-                break
+                continue
 
     for a in toRemove:
-        if a in string:
+        if a in string_set:
             string.remove(a)
 
-    for a in toAdd:
-        if a not in string:
-            string.append(a)
+    if readdOriginal:
+        if isinstance(string, set):
+            string.add("Original Work")
+        elif isinstance(string, list):
+            string.append("Original Work")
 
     return string
